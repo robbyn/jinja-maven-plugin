@@ -1,5 +1,6 @@
 package org.tastefuljava.tools.jinja.maven.plugin;
 
+import com.hubspot.jinjava.Jinjava;
 import java.io.File;
 import java.util.Map;
 import org.apache.maven.plugin.MojoExecutionException;
@@ -14,10 +15,13 @@ public class Yaml implements ValueSource {
     }
 
     @Override
-    public Map<String, Object> loadValues(File srcDir)
+    public void putValues(
+            Jinjava jinja, Map<String, Object> context, File srcDir)
             throws MojoExecutionException {
         LoadSettings settings = LoadSettings.builder().build();
         Load load = new Load(settings);
-        return (Map<String, Object>)load.loadFromString(yaml);
+        Map<String, Object> values
+                = (Map<String, Object>)load.loadFromString(yaml);
+        context.putAll(values);
     }
 }

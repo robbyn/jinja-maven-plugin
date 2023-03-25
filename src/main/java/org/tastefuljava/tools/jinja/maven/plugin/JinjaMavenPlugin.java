@@ -57,13 +57,11 @@ public class JinjaMavenPlugin extends AbstractMojo {
         Map<String, Object> context = new HashMap<>();
         if (values != null) {
             for (ValueSource vs: values) {
-                context.putAll(vs.loadValues(dataDirectory));
+                vs.putValues(jinja, context, dataDirectory);
             }
         }
         for (Rendering rendering: renderings) {
-            rendering.render(jinja,
-                    outputDirectory,
-                    rendering.buildContext(context, dataDirectory));
+            rendering.render(jinja, dataDirectory, outputDirectory, context);
         }
         if (outputDirectory.isDirectory()) {
             addResourceDir(outputDirectory);
