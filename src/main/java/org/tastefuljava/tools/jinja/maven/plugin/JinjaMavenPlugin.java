@@ -8,6 +8,7 @@ import com.hubspot.jinjava.loader.FileLocator;
 import com.hubspot.jinjava.loader.ResourceLocator;
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import org.apache.maven.model.Resource;
@@ -25,16 +26,7 @@ public class JinjaMavenPlugin extends AbstractMojo {
     private MavenProject project;
 
     @Parameter(required=false)
-    private String json;
-
-    @Parameter(required=false)
-    private String jsonFile;
-
-    @Parameter(required=false)
-    private String yaml;
-
-    @Parameter(required=false)
-    private String yamlFile;
+    private List<ValueSource> values;
 
     @Parameter(required = true)
     private List<Rendering> renderings;
@@ -62,12 +54,12 @@ public class JinjaMavenPlugin extends AbstractMojo {
             jinja.setResourceLocator(new CascadingResourceLocator(
                     fileLocator(templateDirectory),
                     new ClasspathResourceLocator()));
-        Rendering topRendering = new Rendering();
-        topRendering.setJsonFile(jsonFile);
-        topRendering.setJson(json);
-        topRendering.setYamlFile(yamlFile);
-        topRendering.setYaml(yaml);
-        Map<String, Object> context = topRendering.buildContext(null, dataDirectory);
+        Map<String, Object> context = new HashMap<>();
+        if (values != null) {
+            for (ValueSource vs: values) {
+                context.putAll(vs.loadValues(dataDirectory));
+            }
+        }
         for (Rendering rendering: renderings) {
             rendering.render(jinja,
                     outputDirectory,
