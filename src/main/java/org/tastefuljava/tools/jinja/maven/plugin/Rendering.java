@@ -3,6 +3,8 @@ package org.tastefuljava.tools.jinja.maven.plugin;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hubspot.jinjava.Jinjava;
+import com.hubspot.jinjava.interpret.RenderResult;
+import com.hubspot.jinjava.interpret.TemplateError;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +21,7 @@ import java.io.Writer;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 import org.apache.maven.plugin.MojoExecutionException;
 import org.snakeyaml.engine.v2.api.Load;
 import org.snakeyaml.engine.v2.api.LoadSettings;
@@ -114,7 +117,7 @@ public class Rendering {
             String temp = templateFile;
             String template = jinja.getResourceLocator().getString(
                     templateFile, UTF_8, null);
-            String output = jinja.render(template, context);
+            String output = render(jinja, template, context);
             String outFile = outputFile;
             if (outFile == null) {
                 if (temp.endsWith(JINJA_EXT)) {
@@ -129,6 +132,18 @@ public class Rendering {
             throw new MojoExecutionException(
                 "Error rendering from template: " + templateFile, ex);
         }
+    }
+
+    private String render(
+            Jinjava jinja, String template, Map<String, Object> context)
+            throws MojoExecutionException {
+        RenderResult result = jinja.renderForResult(template, context);
+        if (result.hasErrors()) {
+            throw new MojoExecutionException(result.getErrors().stream()
+                    .map(TemplateError::toString)
+                    .collect(Collectors.joining("\n")));
+        }
+        return result.getOutput();
     }
 
     private Map<String, Object> loadValuesFromJsonFile(File file)
