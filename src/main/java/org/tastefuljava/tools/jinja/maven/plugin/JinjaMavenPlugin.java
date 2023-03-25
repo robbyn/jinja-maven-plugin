@@ -1,24 +1,13 @@
 package org.tastefuljava.tools.jinja.maven.plugin;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.google.common.collect.Maps;
 import com.hubspot.jinjava.Jinjava;
 import com.hubspot.jinjava.JinjavaConfig;
-import java.io.BufferedReader;
+import com.hubspot.jinjava.loader.CascadingResourceLocator;
+import com.hubspot.jinjava.loader.ClasspathResourceLocator;
+import com.hubspot.jinjava.loader.FileLocator;
+import com.hubspot.jinjava.loader.ResourceLocator;
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
-import java.io.OutputStreamWriter;
-import java.io.PrintWriter;
-import java.io.Reader;
-import java.io.StringReader;
-import java.io.Writer;
-import static java.nio.charset.StandardCharsets.UTF_8;
-import java.util.HashMap;
+import java.io.FileNotFoundException;
 import java.util.List;
 import java.util.Map;
 import org.apache.maven.model.Resource;
@@ -60,11 +49,15 @@ public class JinjaMavenPlugin extends AbstractMojo {
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
+        getLog().info("Jinja classpath: " + System.getProperty("java.class.path"));
         JinjavaConfig jc
                 = JinjavaConfig.newBuilder()
 //                      .withFailOnUnknownTokens(failOnMissingValues)
                         .build();
         Jinjava jinja = new Jinjava(jc);
+            jinja.setResourceLocator(new CascadingResourceLocator(
+                    fileLocator(sourceDirectory),
+                    new ClasspathResourceLocator()));
         Rendering topRendering = new Rendering();
         topRendering.setJsonFile(jsonFile);
         topRendering.setJson(json);
@@ -88,5 +81,15 @@ public class JinjaMavenPlugin extends AbstractMojo {
         Resource resource = new Resource();
         resource.setDirectory(dir.getAbsolutePath());
         project.addResource(resource);
+    }
+
+    private ResourceLocator fileLocator(File dir)
+            throws MojoExecutionException {
+        try {
+            return new FileLocator(dir);
+        } catch (FileNotFoundException ex) {
+            throw new MojoExecutionException(
+                "Error creating file locator for directory: " + dir, ex);
+        }
     }
 }
