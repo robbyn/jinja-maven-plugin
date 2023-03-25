@@ -108,24 +108,27 @@ public class Rendering {
         return context;
     }
 
-    public void render(
-            Jinjava jinja,
-            File srcDir,
-            File outDir,
-            Map<String, Object> context) throws MojoExecutionException {
-        String temp = templateFile;
-        String template = loadTextFromFile(new File(srcDir, temp));
-        String output = jinja.render(template, context);
-        String outFile = outputFile;
-        if (outFile == null) {
-            if (temp.endsWith(JINJA_EXT)) {
-                outFile = temp.substring(
-                        0, temp.length()-JINJA_EXT.length());
-            } else {
-                outFile = temp;
+    public void render(Jinjava jinja, File outDir, Map<String, Object> context)
+            throws MojoExecutionException {
+        try {
+            String temp = templateFile;
+            String template = jinja.getResourceLocator().getString(
+                    templateFile, UTF_8, null);
+            String output = jinja.render(template, context);
+            String outFile = outputFile;
+            if (outFile == null) {
+                if (temp.endsWith(JINJA_EXT)) {
+                    outFile = temp.substring(
+                            0, temp.length()-JINJA_EXT.length());
+                } else {
+                    outFile = temp;
+                }
             }
+            writeTextToFile(output, new File(outDir, outFile));
+        } catch (IOException ex) {
+            throw new MojoExecutionException(
+                "Error rendering from template: " + templateFile, ex);
         }
-        writeTextToFile(output, new File(outDir, outFile));
     }
 
     private Map<String, Object> loadValuesFromJsonFile(File file)

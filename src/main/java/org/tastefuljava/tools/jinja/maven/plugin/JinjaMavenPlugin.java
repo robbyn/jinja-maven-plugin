@@ -39,9 +39,13 @@ public class JinjaMavenPlugin extends AbstractMojo {
     @Parameter(required = true)
     private List<Rendering> renderings;
 
-    @Parameter(property = "gina.jinja.sourceDirectory",
-            defaultValue = "${basedir}/src/main/jinja")
-    private File sourceDirectory;
+    @Parameter(property = "gina.jinja.templateDirectory",
+            defaultValue = "${basedir}/src/main/template")
+    private File templateDirectory;
+
+    @Parameter(property = "gina.jinja.dataDirectory",
+            defaultValue = "${basedir}/src/main/data")
+    private File dataDirectory;
 
     @Parameter(property = "javacc.outputDirectory",
             defaultValue = "${project.build.directory}/generated-resources/jinja")
@@ -56,21 +60,18 @@ public class JinjaMavenPlugin extends AbstractMojo {
                         .build();
         Jinjava jinja = new Jinjava(jc);
             jinja.setResourceLocator(new CascadingResourceLocator(
-                    fileLocator(sourceDirectory),
+                    fileLocator(templateDirectory),
                     new ClasspathResourceLocator()));
         Rendering topRendering = new Rendering();
         topRendering.setJsonFile(jsonFile);
         topRendering.setJson(json);
         topRendering.setYamlFile(yamlFile);
         topRendering.setYaml(yaml);
-        Map<String, Object> context = topRendering.buildContext(
-                null, sourceDirectory);
+        Map<String, Object> context = topRendering.buildContext(null, dataDirectory);
         for (Rendering rendering: renderings) {
             rendering.render(jinja,
-                    sourceDirectory,
                     outputDirectory,
-                    rendering.buildContext(
-                            context, sourceDirectory));
+                    rendering.buildContext(context, dataDirectory));
         }
         if (outputDirectory.isDirectory()) {
             addResourceDir(outputDirectory);
