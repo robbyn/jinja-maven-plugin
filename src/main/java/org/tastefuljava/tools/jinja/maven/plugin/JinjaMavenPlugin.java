@@ -44,7 +44,7 @@ public class JinjaMavenPlugin extends AbstractMojo {
     private File outputDirectory;
 
     @Parameter(property = "gina.jinja.addToResources",
-            defaultValue = "true")
+            defaultValue = "false")
     boolean addToResources;
 
     @Override
