@@ -4,23 +4,27 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.HashMap;
 import java.util.Map;
+import java.util.Properties;
 import org.apache.maven.plugin.MojoExecutionException;
-import org.snakeyaml.engine.v2.api.Load;
-import org.snakeyaml.engine.v2.api.LoadSettings;
 
-public class YamlFile extends AbstractFileSource {
+public class PropertiesFile extends AbstractFileSource {
 
     @Override
     public Map<String, Object> loadValues(File srcDir) throws MojoExecutionException {
         File file = getFile(srcDir);
         try (InputStream stream = new FileInputStream(file)) {
-            LoadSettings settings = LoadSettings.builder().build();
-            Load load = new Load(settings);
-            return (Map<String, Object>)load.loadFromInputStream(stream);
+            Properties props = new Properties();
+            props.load(stream);
+            Map<String,Object> result = new HashMap<>();
+            props.forEach((key,value) -> {
+                result.put(Util.varName((String)key), value);
+            });
+            return result;
         } catch (IOException ex) {
             throw new MojoExecutionException(
-                "Error reading yaml from file: " + file, ex);
+                "Error reading properties from file: " + file, ex);
         }
     }
 }

@@ -51,19 +51,24 @@ public class Rendering {
         this.values = values;
     }
 
-    public void render(
-            Jinjava jinja,
-            File srcDir,
-            File outDir,
-            Map<String, Object> parentContext)
+    public Map<String, Object> buildContext(
+            Map<String, Object> parentContext,
+            File srcDir) throws MojoExecutionException {
+        Map<String,Object> context = new HashMap<>();
+        if (parentContext != null) {
+            context.putAll(parentContext);
+        }
+        if (values != null) {
+            for (ValueSource vs: values) {
+                context.putAll(vs.loadValues(srcDir));
+            }
+        }
+        return context;
+    }
+
+    public void render(Jinjava jinja, File outDir, Map<String, Object> context)
             throws MojoExecutionException {
         try {
-            Map<String,Object> context = new HashMap<>(parentContext);
-            if (values != null) {
-                for (ValueSource vs: values) {
-                    vs.putValues(jinja, context, srcDir);
-                }
-            }
             String temp = templateFile;
             String template = jinja.getResourceLocator().getString(
                     templateFile, UTF_8, null);
@@ -100,7 +105,7 @@ public class Rendering {
             throws MojoExecutionException {
         File parent = file.getParentFile();
         if (parent != null) {
-            if (!parent.mkdirs()) {
+            if (!parent.isDirectory() && !parent.mkdirs()) {
                 throw new MojoExecutionException(
                     "Error creating directory: " + parent);
             }

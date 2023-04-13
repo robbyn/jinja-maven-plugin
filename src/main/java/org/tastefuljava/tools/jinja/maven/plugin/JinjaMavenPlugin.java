@@ -39,16 +39,19 @@ public class JinjaMavenPlugin extends AbstractMojo {
             defaultValue = "${basedir}/src/main/data")
     private File dataDirectory;
 
-    @Parameter(property = "javacc.outputDirectory",
+    @Parameter(property = "gina.jinja.outputDirectory",
             defaultValue = "${project.build.directory}/generated-resources/jinja")
     private File outputDirectory;
+
+    @Parameter(property = "gina.jinja.addToResources",
+            defaultValue = "true")
+    boolean addToResources;
 
     @Override
     public void execute() throws MojoExecutionException, MojoFailureException {
         getLog().info("Jinja classpath: " + System.getProperty("java.class.path"));
         JinjavaConfig jc
                 = JinjavaConfig.newBuilder()
-//                      .withFailOnUnknownTokens(failOnMissingValues)
                         .build();
         Jinjava jinja = new Jinjava(jc);
             jinja.setResourceLocator(new CascadingResourceLocator(
@@ -57,13 +60,15 @@ public class JinjaMavenPlugin extends AbstractMojo {
         Map<String, Object> context = new HashMap<>();
         if (values != null) {
             for (ValueSource vs: values) {
-                vs.putValues(jinja, context, dataDirectory);
+                context.putAll(vs.loadValues(dataDirectory));
             }
         }
         for (Rendering rendering: renderings) {
-            rendering.render(jinja, dataDirectory, outputDirectory, context);
+            rendering.render(jinja,
+                    outputDirectory,
+                    rendering.buildContext(context, dataDirectory));
         }
-        if (outputDirectory.isDirectory()) {
+        if (addToResources && outputDirectory.isDirectory()) {
             addResourceDir(outputDirectory);
         }
     }
