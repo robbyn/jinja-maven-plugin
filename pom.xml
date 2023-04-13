@@ -5,6 +5,7 @@
     <artifactId>jinja-maven-plugin</artifactId>
     <version>1.3</version>
     <packaging>maven-plugin</packaging>
+    <name>Jinja Maven Plugin</name>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -74,5 +75,4 @@
             </plugin>
         </plugins>
     </build>
-    <name>Jinja Maven Plugin</name>
 </project>
