@@ -5,7 +5,20 @@
     <artifactId>jinja-maven-plugin</artifactId>
     <version>1.3</version>
     <packaging>maven-plugin</packaging>
+
     <name>Jinja Maven Plugin</name>
+
+    <organization>
+        <name>Tasteful Java</name>
+        <url>https://tastefuljava.org/</url>
+    </organization>
+
+    <developers>
+        <developer>
+            <name>Maurice Perry</name>
+            <email>maurice@tastefuljava.org</email>
+        </developer>
+    </developers>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
